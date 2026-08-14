@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "sonner";
+import { SITE_URL } from "@/lib/config";
 import "./globals.css";
 
 const inter = Inter({
@@ -11,9 +12,26 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+const title = "TechnoVIT CMS";
+const description = "The Content Management System powering TechnoVIT'26";
+
 export const metadata: Metadata = {
-  title: "TechnoVIT CMS",
-  description: "Content Management System for TechnoVIT",
+  metadataBase: new URL(SITE_URL),
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    siteName: title,
+    type: "website",
+    images: [{ url: "/icon.png", width: 512, height: 512, alt: title }],
+  },
+  twitter: {
+    card: "summary",
+    title,
+    description,
+    images: ["/icon.png"],
+  },
 };
 
 export default function RootLayout({

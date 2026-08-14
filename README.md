@@ -28,6 +28,7 @@ Copy `.env.local.example` (or create `.env.local`) with:
 ```
 NEXT_PUBLIC_API_URL=
 NEXT_PUBLIC_CDN_URL=
+NEXT_PUBLIC_SITE_URL=
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
 CLERK_SECRET_KEY=
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
@@ -38,7 +39,9 @@ NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
 
 `NEXT_PUBLIC_API_URL` points at the worker (defaults to
 `http://127.0.0.1:8787` for local dev). `NEXT_PUBLIC_CDN_URL` points at the
-public asset domain (defaults to `https://cdn.puang.in`).
+public asset domain (defaults to `https://cdn.puang.in`). `NEXT_PUBLIC_SITE_URL`
+should be set to the deployed CMS URL in production — it's used to resolve
+absolute URLs for social share previews (Open Graph / Twitter cards).
 
 ## Scripts
 
