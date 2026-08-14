@@ -7,11 +7,6 @@ export default function Page() {
   return (
     <div className="flex flex-col items-center min-h-screen justify-center bg-zinc-50">
       <div className="flex-1 flex flex-col items-center justify-center p-4">
-        <div className="mb-8 flex items-center justify-center gap-3">
-          <span className="font-bold text-2xl text-foreground tracking-tight">
-            TechnoVIT
-          </span>
-        </div>
         <SignIn />
       </div>
 
