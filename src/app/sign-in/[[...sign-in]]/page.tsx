@@ -11,19 +11,23 @@ export default function Page() {
       </div>
 
       <div className="pb-8 flex items-center gap-3 text-xs text-zinc-400 font-medium">
-        <span className="flex items-center gap-1.5">
+        <span className="flex items-center gap-1.5 truncate">
           <span>Made with</span>
           <HeartIcon
             weight="fill"
-            className="h-3.5 w-3.5 text-red-500 animate-pulse"
+            className="h-3.5 w-3.5 text-red-500 animate-pulse shrink-0"
           />
-          <span>by TechnoVIT Website Team</span>
+          by
+          <span className="font-bold text-gray-600">
+            TechnoVIT Website Team
+          </span>
         </span>
+        |
         <a
           href="https://github.com/technovit26/cms"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1 hover:text-foreground transition-colors"
+          className="flex items-center gap-1 shrink-0 hover:text-foreground transition-colors"
         >
           <GithubLogoIcon className="h-3.5 w-3.5" />
           <span>Open Source</span>
