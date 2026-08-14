@@ -19,6 +19,7 @@ import { API_URL, CDN_URL } from "@/lib/config";
 import { compressImage } from "@/lib/utils";
 import type { Event } from "@/lib/types";
 import { motion, AnimatePresence } from "motion/react";
+import { toast } from "sonner";
 
 const toInputDate = (dateStr?: string) => {
   if (!dateStr) return "";
@@ -73,7 +74,9 @@ export function EventForm({ initialData }: { initialData?: Event }) {
           setFile(compressedFile);
           const compressedUrl = URL.createObjectURL(compressedFile);
           setPreview(compressedUrl);
-        } catch {
+        } catch (error) {
+          console.error("Failed to compress image:", error);
+          toast.error("Failed to process the image");
           setFile(null);
           setPreview(null);
         } finally {
@@ -104,6 +107,11 @@ export function EventForm({ initialData }: { initialData?: Event }) {
           method: "POST",
           body: formDataUpload,
         });
+        if (!uploadRes.ok) {
+          toast.error("Failed to upload poster image");
+          setLoading(false);
+          return;
+        }
         const uploadData = await uploadRes.json();
         finalPosterPath = uploadData.key;
       }
@@ -129,10 +137,15 @@ export function EventForm({ initialData }: { initialData?: Event }) {
       });
 
       if (res.ok) {
+        toast.success(initialData ? "Event updated" : "Event created");
         router.push("/events");
         router.refresh();
+      } else {
+        toast.error("Failed to save event");
       }
-    } catch {
+    } catch (error) {
+      console.error("Failed to save event:", error);
+      toast.error("Failed to save event");
     } finally {
       setLoading(false);
     }

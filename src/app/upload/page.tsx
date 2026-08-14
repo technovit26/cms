@@ -20,16 +20,8 @@ import { API_URL, CDN_URL } from "@/lib/config";
 import { compressImage } from "@/lib/utils";
 import Link from "next/link";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/cms/confirm-dialog";
+import { toast } from "sonner";
 
 type MediaType = "photos" | "videos";
 
@@ -82,6 +74,9 @@ export default function UploadMediaPage() {
     setIsProcessing(true);
     setProgress({ current: 0, total: selectedFiles.length });
 
+    let successCount = 0;
+    let failedCount = 0;
+
     for (let i = 0; i < selectedFiles.length; i++) {
       const originalFile = selectedFiles[i];
       let fileToUpload = originalFile;
@@ -94,7 +89,9 @@ export default function UploadMediaPage() {
             fileToUpload = new File([compressed], originalFile.name, {
               type: compressed.type,
             });
-          } catch {}
+          } catch (error) {
+            console.error("Failed to compress image:", error);
+          }
         }
 
         setStatusMessage(`Uploading ${fileToUpload.name}...`);
@@ -109,6 +106,7 @@ export default function UploadMediaPage() {
 
         if (res.ok) {
           const data = await res.json();
+          successCount++;
           setUploadedFiles((prev) => [
             {
               name: originalFile.name,
@@ -118,14 +116,27 @@ export default function UploadMediaPage() {
             },
             ...prev,
           ]);
+        } else {
+          failedCount++;
         }
-      } catch {}
+      } catch (error) {
+        console.error("Failed to upload file:", error);
+        failedCount++;
+      }
       setProgress({ current: i + 1, total: selectedFiles.length });
     }
 
     setIsProcessing(false);
     setStatusMessage("");
     setSelectedFiles([]);
+
+    if (failedCount === 0) {
+      toast.success(`${successCount} file${successCount === 1 ? "" : "s"} uploaded`);
+    } else if (successCount === 0) {
+      toast.error(`Failed to upload ${failedCount} file${failedCount === 1 ? "" : "s"}`);
+    } else {
+      toast.warning(`${successCount} uploaded, ${failedCount} failed`);
+    }
   }, [selectedFiles, activeTab]);
 
   const filteredUploadedFiles = useMemo(
@@ -373,29 +384,14 @@ export default function UploadMediaPage() {
           </Card>
         )}
 
-        <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
-          <AlertDialogContent className="rounded-none border-zinc-200 bg-white shadow-lg p-5 w-[95vw] max-w-sm">
-            <AlertDialogHeader className="space-y-2">
-              <AlertDialogTitle className="text-base">
-                Clear All?
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-sm">
-                This will remove all selected files from the queue.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="mt-4">
-              <AlertDialogCancel className="rounded-none border-zinc-200 bg-white hover:bg-zinc-50 h-8 text-sm cursor-pointer">
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={clearAllFiles}
-                className="rounded-none bg-destructive text-destructive-foreground hover:bg-destructive/90 h-8 text-sm cursor-pointer"
-              >
-                Clear
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ConfirmDialog
+          open={showClearDialog}
+          onOpenChange={setShowClearDialog}
+          title="Clear all?"
+          description="This will remove all selected files from the queue."
+          confirmLabel="Clear"
+          onConfirm={clearAllFiles}
+        />
 
         <Dialog
           open={previewMedia !== null}
