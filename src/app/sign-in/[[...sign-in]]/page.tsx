@@ -1,7 +1,7 @@
 "use client";
 
 import { SignIn } from "@clerk/nextjs";
-import { HeartIcon } from "@phosphor-icons/react";
+import { GithubLogoIcon, HeartIcon } from "@phosphor-icons/react";
 
 export default function Page() {
   return (
@@ -15,13 +15,24 @@ export default function Page() {
         <SignIn />
       </div>
 
-      <div className="pb-8 text-xs text-zinc-400 font-medium flex items-center gap-1.5">
-        <span>Made with</span>
-        <HeartIcon
-          weight="fill"
-          className="h-3.5 w-3.5 text-red-500 animate-pulse"
-        />
-        <span>for TechnoVIT</span>
+      <div className="pb-8 flex items-center gap-3 text-xs text-zinc-400 font-medium">
+        <span className="flex items-center gap-1.5">
+          <span>Made with</span>
+          <HeartIcon
+            weight="fill"
+            className="h-3.5 w-3.5 text-red-500 animate-pulse"
+          />
+          <span>by TechnoVIT Website Team</span>
+        </span>
+        <a
+          href="https://github.com/technovit26/cms"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 hover:text-foreground transition-colors"
+        >
+          <GithubLogoIcon className="h-3.5 w-3.5" />
+          <span>Open Source</span>
+        </a>
       </div>
     </div>
   );
