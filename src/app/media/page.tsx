@@ -126,7 +126,7 @@ export default function MediaPage() {
                 >
                   <Card className="overflow-hidden border-zinc-200/60 shadow-sm group bg-white hover:border-primary/30 hover:shadow-md transition-all">
                     <div className="aspect-square relative bg-zinc-100 flex items-center justify-center overflow-hidden">
-                      {file.key.endsWith('.webp') || file.key.match(/\.(jpeg|jpg|gif|png|svg)$/i) ? (
+                      {file.key.startsWith('images/') ? (
                         <img
                           src={`${CDN_URL}/${file.key}`}
                           alt={file.key} 
