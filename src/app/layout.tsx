@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -23,7 +24,14 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={`${inter.className} antialiased`}>{children}</body>
+        <body className={`${inter.className} antialiased`}>
+          {children}
+          <Toaster
+            position="top-right"
+            richColors
+            toastOptions={{ style: { borderRadius: 0 } }}
+          />
+        </body>
       </html>
       <Analytics />
     </ClerkProvider>
