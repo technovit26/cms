@@ -64,6 +64,10 @@ export default function ImportEventsPage() {
         is_special_event: row["is_special_event"] === "true" || row["Special"] === "Yes" ? 1 : 0,
         registration_link: row["registration_link"] || row["Link"] || "",
         team_size: row["team_size"] || row["Team Size"] || "",
+        faculty_coord_emp_id: row["faculty_coord_emp_id"] || row["Faculty Coordinator Emp ID"] || "",
+        faculty_coord_name: row["faculty_coord_name"] || row["Faculty Coordinator Name"] || "",
+        faculty_coord_mobile: row["faculty_coord_mobile"] || row["Faculty Coordinator Mobile"] || "",
+        faculty_coord_email: row["faculty_coord_email"] || row["Faculty Coordinator Email"] || "",
       }));
 
       let successCount = 0;
@@ -113,13 +117,17 @@ export default function ImportEventsPage() {
         start_date_time: "2024-03-15 10:00:00",
         end_date_time: "2024-03-15 17:00:00",
         price_per_person: 100,
-        participation_type: "Individual",
+        participation_type: "Solo",
         event_venue: "Anna Auditorium",
         short_description: "A brief description here",
         long_description: "Detailed description here",
         is_special_event: "false",
         registration_link: "https://example.com",
         team_size: "1",
+        faculty_coord_emp_id: "EMP1234",
+        faculty_coord_name: "Dr. Jane Doe",
+        faculty_coord_mobile: "9876543210",
+        faculty_coord_email: "jane.doe@vit.ac.in",
       },
     ];
     const ws = XLSX.utils.json_to_sheet(template);

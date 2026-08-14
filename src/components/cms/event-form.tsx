@@ -27,6 +27,7 @@ const toInputDate = (dateStr?: string) => {
 };
 
 const EVENT_FOR_OPTIONS = ["VITian", "Non VITian", "Both"];
+const PARTICIPATION_OPTIONS = ["Solo", "Duo", "Team"];
 
 export function EventForm({ initialData }: { initialData?: Event }) {
   const router = useRouter();
@@ -51,6 +52,10 @@ export function EventForm({ initialData }: { initialData?: Event }) {
     registration_link: initialData?.registration_link || "",
     team_size: initialData?.team_size || "",
     poster_path: initialData?.poster_path || "",
+    faculty_coord_emp_id: initialData?.faculty_coord_emp_id || "",
+    faculty_coord_name: initialData?.faculty_coord_name || "",
+    faculty_coord_mobile: initialData?.faculty_coord_mobile || "",
+    faculty_coord_email: initialData?.faculty_coord_email || "",
   });
 
   useEffect(() => {
@@ -245,7 +250,9 @@ export function EventForm({ initialData }: { initialData?: Event }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="space-y-1.5">
-          <Label className="text-sm font-medium">Price (₹)</Label>
+          <Label className="text-sm font-medium">
+            Registration Fee (₹, per person, incl. 18% GST)
+          </Label>
           <Input
             type="number"
             min="0"
@@ -261,14 +268,23 @@ export function EventForm({ initialData }: { initialData?: Event }) {
         </div>
         <div className="space-y-1.5">
           <Label className="text-sm font-medium">Participation</Label>
-          <Input
-            placeholder="e.g. Individual"
+          <Select
             value={formData.participation_type}
-            onChange={(e) =>
-              setFormData({ ...formData, participation_type: e.target.value })
+            onValueChange={(value) =>
+              setFormData({ ...formData, participation_type: value })
             }
-            className="h-10 text-sm focus-visible:ring-primary/20"
-          />
+          >
+            <SelectTrigger className="w-full h-10 text-sm focus:ring-primary/20">
+              <SelectValue placeholder="Select participation type" />
+            </SelectTrigger>
+            <SelectContent>
+              {PARTICIPATION_OPTIONS.map((opt) => (
+                <SelectItem key={opt} value={opt} className="text-sm">
+                  {opt}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label className="text-sm font-medium">Venue</Label>
@@ -341,6 +357,54 @@ export function EventForm({ initialData }: { initialData?: Event }) {
             }
             className="h-10 text-sm focus-visible:ring-primary/20"
           />
+        </div>
+      </div>
+
+      <div className="space-y-4 pt-4 border-t border-zinc-200/60">
+        <Label className="text-sm font-medium">Faculty Coordinator</Label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Employee ID</Label>
+            <Input
+              value={formData.faculty_coord_emp_id}
+              onChange={(e) =>
+                setFormData({ ...formData, faculty_coord_emp_id: e.target.value })
+              }
+              className="h-10 text-sm focus-visible:ring-primary/20"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Name</Label>
+            <Input
+              value={formData.faculty_coord_name}
+              onChange={(e) =>
+                setFormData({ ...formData, faculty_coord_name: e.target.value })
+              }
+              className="h-10 text-sm focus-visible:ring-primary/20"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Mobile Number</Label>
+            <Input
+              type="tel"
+              value={formData.faculty_coord_mobile}
+              onChange={(e) =>
+                setFormData({ ...formData, faculty_coord_mobile: e.target.value })
+              }
+              className="h-10 text-sm focus-visible:ring-primary/20"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Email</Label>
+            <Input
+              type="email"
+              value={formData.faculty_coord_email}
+              onChange={(e) =>
+                setFormData({ ...formData, faculty_coord_email: e.target.value })
+              }
+              className="h-10 text-sm focus-visible:ring-primary/20"
+            />
+          </div>
         </div>
       </div>
 

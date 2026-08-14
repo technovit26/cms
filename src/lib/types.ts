@@ -15,6 +15,10 @@ export interface Event {
   is_special_event: boolean | number;
   registration_link: string | null;
   team_size: string | null;
+  faculty_coord_emp_id: string | null;
+  faculty_coord_name: string | null;
+  faculty_coord_mobile: string | null;
+  faculty_coord_email: string | null;
 }
 
 export interface MediaFile {

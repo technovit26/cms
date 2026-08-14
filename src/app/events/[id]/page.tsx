@@ -16,6 +16,9 @@ import {
   UsersIcon,
   TicketIcon,
   LinkIcon,
+  IdentificationCardIcon,
+  EnvelopeIcon,
+  PhoneIcon,
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { API_URL, CDN_URL } from "@/lib/config";
@@ -304,6 +307,70 @@ export default function EventPage() {
                     </div>
                   </CardContent>
                 </Card>
+
+                {(event.faculty_coord_name || event.faculty_coord_emp_id || event.faculty_coord_mobile || event.faculty_coord_email) && (
+                  <Card className="rounded-xl border-zinc-200/60 bg-white shadow-sm">
+                    <CardHeader className="border-b border-zinc-100/80 p-5">
+                      <CardTitle className="text-lg font-semibold text-zinc-900">
+                        Faculty Coordinator
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-5">
+                      <div className="space-y-4">
+                        {event.faculty_coord_name && (
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-full bg-zinc-100 flex items-center justify-center shrink-0">
+                              <IdentificationCardIcon className="h-5 w-5 text-zinc-600" weight="fill" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Name</p>
+                              <p className="text-sm font-semibold text-zinc-900">
+                                {event.faculty_coord_name}
+                                {event.faculty_coord_emp_id && (
+                                  <span className="text-zinc-500 font-normal"> ({event.faculty_coord_emp_id})</span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {event.faculty_coord_mobile && (
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-full bg-zinc-100 flex items-center justify-center shrink-0">
+                              <PhoneIcon className="h-5 w-5 text-zinc-600" weight="fill" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Mobile</p>
+                              <a
+                                href={`tel:${event.faculty_coord_mobile}`}
+                                className="text-sm font-semibold text-zinc-900 hover:text-primary"
+                              >
+                                {event.faculty_coord_mobile}
+                              </a>
+                            </div>
+                          </div>
+                        )}
+
+                        {event.faculty_coord_email && (
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-full bg-zinc-100 flex items-center justify-center shrink-0">
+                              <EnvelopeIcon className="h-5 w-5 text-zinc-600" weight="fill" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Email</p>
+                              <a
+                                href={`mailto:${event.faculty_coord_email}`}
+                                className="text-sm font-semibold text-zinc-900 hover:text-primary truncate block"
+                              >
+                                {event.faculty_coord_email}
+                              </a>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </motion.div>
           ) : (
