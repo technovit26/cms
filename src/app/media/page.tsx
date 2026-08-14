@@ -4,18 +4,22 @@ import { useEffect, useState } from "react";
 import { CMSLayout } from "@/components/cms/cms-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/cms/confirm-dialog";
 import { TrashIcon, LinkIcon, DownloadIcon, CheckIcon, SpinnerIcon, FileIcon } from "@phosphor-icons/react";
 import { API_URL, CDN_URL } from "@/lib/config";
 import type { MediaFile } from "@/lib/types";
 import { motion, AnimatePresence } from "motion/react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import { toast } from "sonner";
 
 export default function MediaPage() {
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [pendingDeleteKey, setPendingDeleteKey] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isDownloadingAll, setIsDownloadingAll] = useState(false);
 
   const fetchMedia = async () => {
     setLoading(true);
@@ -27,6 +31,7 @@ export default function MediaPage() {
       }
     } catch (error) {
       console.error("Failed to fetch media:", error);
+      toast.error("Failed to load media library");
     } finally {
       setLoading(false);
     }
@@ -39,19 +44,25 @@ export default function MediaPage() {
     fetchMedia();
   }, []);
 
-  const handleDelete = async (key: string) => {
-    if (!window.confirm("Are you sure you want to delete this file?")) return;
-    
+  const handleDelete = async () => {
+    const key = pendingDeleteKey;
+    if (!key) return;
+
     setIsDeleting(key);
     try {
       const res = await fetch(`${API_URL}/media?key=${encodeURIComponent(key)}`, {
         method: "DELETE",
       });
       if (res.ok) {
+        toast.success("File deleted");
+        setPendingDeleteKey(null);
         await fetchMedia();
+      } else {
+        toast.error("Failed to delete file");
       }
     } catch (error) {
       console.error("Failed to delete media:", error);
+      toast.error("Failed to delete file");
     } finally {
       setIsDeleting(null);
     }
@@ -61,12 +72,14 @@ export default function MediaPage() {
     const url = `${CDN_URL}/${key}`;
     navigator.clipboard.writeText(url);
     setCopiedKey(key);
+    toast.success("Link copied to clipboard");
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
   const handleDownloadAll = async () => {
     if (files.length === 0) return;
-    
+
+    setIsDownloadingAll(true);
     try {
       const zip = new JSZip();
       const promises = files.map(async (file) => {
@@ -74,13 +87,16 @@ export default function MediaPage() {
         const blob = await response.blob();
         zip.file(file.key, blob);
       });
-      
+
       await Promise.all(promises);
       const content = await zip.generateAsync({ type: "blob" });
       saveAs(content, `technovit_media_${new Date().toISOString().split('T')[0]}.zip`);
+      toast.success("Media archive downloaded");
     } catch (error) {
       console.error("Failed to download files:", error);
-      alert("Failed to download files. Check console for details.");
+      toast.error("Failed to download files");
+    } finally {
+      setIsDownloadingAll(false);
     }
   };
 
@@ -89,13 +105,17 @@ export default function MediaPage() {
       title="Media Library"
       description="Manage all uploaded posters and images"
       actions={
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="h-9 text-xs sm:text-sm bg-white shadow-sm"
           onClick={handleDownloadAll}
-          disabled={files.length === 0}
+          disabled={files.length === 0 || isDownloadingAll}
         >
-          <DownloadIcon className="mr-2 h-4 w-4" />
+          {isDownloadingAll ? (
+            <SpinnerIcon className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <DownloadIcon className="mr-2 h-4 w-4" />
+          )}
           Download All
         </Button>
       }
@@ -129,14 +149,14 @@ export default function MediaPage() {
                       {file.key.startsWith('images/') ? (
                         <img
                           src={`${CDN_URL}/${file.key}`}
-                          alt={file.key} 
+                          alt={file.key}
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                           loading="lazy"
                         />
                       ) : (
                         <FileIcon className="h-10 w-10 text-zinc-300" />
                       )}
-                      
+
                       {/* Overlay actions */}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
                         <button
@@ -161,7 +181,7 @@ export default function MediaPage() {
                           <DownloadIcon className="h-4 w-4" />
                         </a>
                         <button
-                          onClick={() => handleDelete(file.key)}
+                          onClick={() => setPendingDeleteKey(file.key)}
                           disabled={isDeleting === file.key}
                           className="h-8 w-8 rounded-full bg-red-500/80 hover:bg-red-500 text-white flex items-center justify-center transition-colors"
                           title="Delete"
@@ -174,7 +194,7 @@ export default function MediaPage() {
                         </button>
                       </div>
                     </div>
-                    
+
                     <CardContent className="p-3">
                       <p className="text-xs font-semibold text-zinc-900 truncate" title={file.key}>
                         {file.key}
@@ -195,6 +215,16 @@ export default function MediaPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={pendingDeleteKey !== null}
+        onOpenChange={(open) => !open && setPendingDeleteKey(null)}
+        title="Delete this file?"
+        description="This will permanently remove the file from storage. This action cannot be undone."
+        confirmLabel="Delete"
+        loading={isDeleting !== null}
+        onConfirm={handleDelete}
+      />
     </CMSLayout>
   );
 }
