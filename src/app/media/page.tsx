@@ -20,6 +20,7 @@ export default function MediaPage() {
   const [pendingDeleteKey, setPendingDeleteKey] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+  const [activeKey, setActiveKey] = useState<string | null>(null);
 
   const fetchMedia = async () => {
     setLoading(true);
@@ -145,7 +146,12 @@ export default function MediaPage() {
                   transition={{ duration: 0.2, delay: Math.min(idx * 0.05, 0.3) }}
                 >
                   <Card className="overflow-hidden border-zinc-200/60 shadow-sm group bg-white hover:border-primary/30 hover:shadow-md transition-all">
-                    <div className="aspect-square relative bg-zinc-100 flex items-center justify-center overflow-hidden">
+                    <div
+                      className="aspect-square relative bg-zinc-100 flex items-center justify-center overflow-hidden cursor-pointer"
+                      onClick={() =>
+                        setActiveKey((prev) => (prev === file.key ? null : file.key))
+                      }
+                    >
                       {file.key.startsWith('images/') ? (
                         <img
                           src={`${CDN_URL}/${file.key}`}
@@ -157,11 +163,20 @@ export default function MediaPage() {
                         <FileIcon className="h-10 w-10 text-zinc-300" />
                       )}
 
-                      {/* Overlay actions */}
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
+                      {/* Overlay actions: shown on hover (desktop) or tap (touch) */}
+                      <div
+                        className={`absolute inset-0 bg-black/60 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px] ${
+                          activeKey === file.key
+                            ? "opacity-100"
+                            : "opacity-0 group-hover:opacity-100"
+                        }`}
+                      >
                         <button
-                          onClick={() => handleCopyLink(file.key)}
-                          className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopyLink(file.key);
+                          }}
+                          className="h-9 w-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
                           title="Copy Link"
                         >
                           {copiedKey === file.key ? (
@@ -175,15 +190,19 @@ export default function MediaPage() {
                           download
                           target="_blank"
                           rel="noreferrer"
-                          className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                          className="h-9 w-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
                           title="Download"
                         >
                           <DownloadIcon className="h-4 w-4" />
                         </a>
                         <button
-                          onClick={() => setPendingDeleteKey(file.key)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPendingDeleteKey(file.key);
+                          }}
                           disabled={isDeleting === file.key}
-                          className="h-8 w-8 rounded-full bg-red-500/80 hover:bg-red-500 text-white flex items-center justify-center transition-colors"
+                          className="h-9 w-9 rounded-full bg-red-500/80 hover:bg-red-500 text-white flex items-center justify-center transition-colors"
                           title="Delete"
                         >
                           {isDeleting === file.key ? (
