@@ -132,7 +132,7 @@ export default function EventPage() {
               <div className="lg:col-span-2 space-y-6">
                 <Card className="rounded-xl border-zinc-200/60 bg-white shadow-sm overflow-hidden">
                   <div className="h-32 sm:h-48 bg-gradient-to-r from-primary/10 to-purple-500/10 relative">
-                    {event.is_special_event && (
+                    {Boolean(event.is_special_event) && (
                       <div className="absolute top-4 right-4 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm uppercase tracking-wide">
                         Special Event
                       </div>
