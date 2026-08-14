@@ -11,6 +11,7 @@ import { API_URL } from "@/lib/config";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
 import { motion, AnimatePresence } from "motion/react";
+import { toast } from "sonner";
 
 export default function ImportEventsPage() {
   const router = useRouter();
@@ -96,6 +97,7 @@ export default function ImportEventsPage() {
       }
     } catch (error) {
       console.error("Failed to process file:", error);
+      toast.error("Failed to process the file. Check its format and try again.");
     } finally {
       setLoading(false);
     }

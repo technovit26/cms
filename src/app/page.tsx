@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { Event } from "@/lib/types";
 import { API_URL, CDN_URL } from "@/lib/config";
 import { formatDate } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function Dashboard() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -54,6 +55,7 @@ export default function Dashboard() {
         }
       } catch (error) {
         console.error("Failed to fetch events:", error);
+        toast.error("Failed to load dashboard data");
       } finally {
         setLoading(false);
       }

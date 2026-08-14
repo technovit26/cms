@@ -5,12 +5,14 @@ import { CMSLayout } from "@/components/cms/cms-layout";
 import { Button } from "@/components/ui/button";
 import { PlusIcon, TrashIcon, MagnifyingGlassIcon, CheckIcon, DownloadIcon } from "@phosphor-icons/react";
 import { CustomCheckbox } from "@/components/cms/custom-checkbox";
+import { ConfirmDialog } from "@/components/cms/confirm-dialog";
 import Link from "next/link";
 import { API_URL, CDN_URL } from "@/lib/config";
 import { Event } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 import Papa from "papaparse";
+import { toast } from "sonner";
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -18,6 +20,7 @@ export default function EventsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -29,6 +32,7 @@ export default function EventsPage() {
       }
     } catch (error) {
       console.error("Failed to fetch events:", error);
+      toast.error("Failed to load events");
     } finally {
       setLoading(false);
     }
@@ -70,8 +74,6 @@ export default function EventsPage() {
   };
 
   const handleBulkDelete = async () => {
-    if (!window.confirm(`Are you sure you want to delete ${selectedIds.size} events?`)) return;
-
     setIsDeleting(true);
     try {
       await Promise.all(
@@ -79,10 +81,13 @@ export default function EventsPage() {
           fetch(`${API_URL}/events/${id}`, { method: "DELETE" })
         )
       );
+      toast.success(`${selectedIds.size} event${selectedIds.size === 1 ? "" : "s"} deleted`);
       setSelectedIds(new Set());
+      setShowBulkDeleteConfirm(false);
       await fetchEvents();
     } catch (error) {
       console.error("Failed to delete events:", error);
+      toast.error("Failed to delete events");
     } finally {
       setIsDeleting(false);
     }
@@ -101,6 +106,7 @@ export default function EventsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    toast.success("CSV exported");
   };
 
   return (
@@ -159,10 +165,10 @@ export default function EventsPage() {
                   <DownloadIcon className="h-3.5 w-3.5 mr-1.5" />
                   Export
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={handleBulkDelete}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowBulkDeleteConfirm(true)}
                   disabled={isDeleting}
                   className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2"
                 >
@@ -281,6 +287,16 @@ export default function EventsPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showBulkDeleteConfirm}
+        onOpenChange={setShowBulkDeleteConfirm}
+        title={`Delete ${selectedIds.size} event${selectedIds.size === 1 ? "" : "s"}?`}
+        description="This will permanently remove the selected events. This action cannot be undone."
+        confirmLabel="Delete"
+        loading={isDeleting}
+        onConfirm={handleBulkDelete}
+      />
     </CMSLayout>
   );
 }

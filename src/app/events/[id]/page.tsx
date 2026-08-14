@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { CMSLayout } from "@/components/cms/cms-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/cms/confirm-dialog";
 import {
   ArrowLeftIcon,
   CalendarIcon,
@@ -21,6 +22,7 @@ import { API_URL, CDN_URL } from "@/lib/config";
 import type { Event } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
+import { toast } from "sonner";
 
 export default function EventPage() {
   const params = useParams();
@@ -28,6 +30,7 @@ export default function EventPage() {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -39,6 +42,7 @@ export default function EventPage() {
         }
       } catch (error) {
         console.error("Failed to fetch event:", error);
+        toast.error("Failed to load event");
       } finally {
         setLoading(false);
       }
@@ -48,18 +52,21 @@ export default function EventPage() {
   }, [params.id]);
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this event?")) return;
-    
     setIsDeleting(true);
     try {
       const res = await fetch(`${API_URL}/events/${params.id}`, {
         method: "DELETE",
       });
       if (res.ok) {
+        toast.success("Event deleted");
         router.push("/events");
+      } else {
+        toast.error("Failed to delete event");
+        setIsDeleting(false);
       }
     } catch (error) {
       console.error("Failed to delete event:", error);
+      toast.error("Failed to delete event");
       setIsDeleting(false);
     }
   };
@@ -90,7 +97,7 @@ export default function EventPage() {
               <Button
                 variant="destructive"
                 className="h-9 text-xs sm:text-sm shadow-sm transition-all active:scale-95"
-                onClick={handleDelete}
+                onClick={() => setShowDeleteConfirm(true)}
                 disabled={isDeleting}
               >
                 {isDeleting ? (
@@ -315,6 +322,16 @@ export default function EventPage() {
           )}
         </AnimatePresence>
       </div>
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete this event?"
+        description="This will permanently remove the event. This action cannot be undone."
+        confirmLabel="Delete"
+        loading={isDeleting}
+        onConfirm={handleDelete}
+      />
     </CMSLayout>
   );
 }

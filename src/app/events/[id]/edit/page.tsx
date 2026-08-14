@@ -11,6 +11,7 @@ import { useParams } from "next/navigation";
 import { API_URL } from "@/lib/config";
 import type { Event } from "@/lib/types";
 import { motion, AnimatePresence } from "motion/react";
+import { toast } from "sonner";
 
 export default function EditEventPage() {
   const params = useParams();
@@ -27,6 +28,7 @@ export default function EditEventPage() {
         }
       } catch (error) {
         console.error("Failed to fetch event:", error);
+        toast.error("Failed to load event");
       } finally {
         setLoading(false);
       }
