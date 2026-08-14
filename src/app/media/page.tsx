@@ -44,7 +44,7 @@ export default function MediaPage() {
     
     setIsDeleting(key);
     try {
-      const res = await fetch(`${API_URL}/media/${key}`, {
+      const res = await fetch(`${API_URL}/media?key=${encodeURIComponent(key)}`, {
         method: "DELETE",
       });
       if (res.ok) {
