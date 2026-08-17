@@ -6,7 +6,13 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
+  if (!dateString) return "—";
+  // The DB stores dates as 'YYYY-MM-DD HH:mm:ss' (space-separated).
+  // Safari/WebKit rejects that format — replace the space with 'T' to get
+  // a valid ISO 8601 string that all browsers parse correctly.
+  const normalized = dateString.replace(" ", "T");
+  const date = new Date(normalized);
+  if (isNaN(date.getTime())) return "—";
   return date.toLocaleString("en-US", {
     weekday: "short",
     month: "short",

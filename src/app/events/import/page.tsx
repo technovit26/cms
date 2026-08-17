@@ -43,19 +43,56 @@ export default function ImportEventsPage() {
         });
         jsonData = parsed.data;
       } else {
-        const workbook = XLSX.read(data);
+        // cellDates:true makes XLSX return proper JS Date objects for date cells
+        // instead of Excel serial numbers (floating-point days since 1900)
+        const workbook = XLSX.read(data, { cellDates: true });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet);
       }
+
+      // Normalise any date value (JS Date object, Excel serial number, or string)
+      // into the 'YYYY-MM-DD HH:mm:ss' format expected by the DB and the event form.
+      const toDBDate = (val: unknown): string => {
+        if (!val && val !== 0) return "";
+        if (val instanceof Date) {
+          if (isNaN(val.getTime())) return "";
+          const pad = (n: number) => String(n).padStart(2, "0");
+          return (
+            val.getFullYear() + "-" +
+            pad(val.getMonth() + 1) + "-" +
+            pad(val.getDate()) + " " +
+            pad(val.getHours()) + ":" +
+            pad(val.getMinutes()) + ":" +
+            pad(val.getSeconds())
+          );
+        }
+        if (typeof val === "number") {
+          // Fallback: Excel serial number without cellDates (days since 1899-12-30)
+          const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+          if (isNaN(d.getTime())) return "";
+          const pad = (n: number) => String(n).padStart(2, "0");
+          return (
+            d.getUTCFullYear() + "-" +
+            pad(d.getUTCMonth() + 1) + "-" +
+            pad(d.getUTCDate()) + " " +
+            pad(d.getUTCHours()) + ":" +
+            pad(d.getUTCMinutes()) + ":" +
+            pad(d.getUTCSeconds())
+          );
+        }
+        // Already a string — return as-is (CSV path)
+        return String(val);
+      };
 
       const formattedEvents = jsonData.map((row) => ({
         event_name: row["event_name"] || row["Event Name"] || "",
         club_name: row["club_name"] || row["Club Name"] || "",
         event_type: row["event_type"] || row["Event Type"] || "",
         event_for: row["event_for"] || row["Event For"] || "Both",
-        start_date_time: row["start_date_time"] || row["Start Time"] || "",
-        end_date_time: row["end_date_time"] || row["End Time"] || "",
+        poster_path: row["poster_path"] || "",
+        start_date_time: toDBDate(row["start_date_time"] ?? row["Start Time"]),
+        end_date_time: toDBDate(row["end_date_time"] ?? row["End Time"]),
         price_per_person: Number(row["price_per_person"] || row["Price"] || 0),
         participation_type: row["participation_type"] || row["Participation"] || "",
         event_venue: row["event_venue"] || row["Venue"] || "",
