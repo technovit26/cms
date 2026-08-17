@@ -121,11 +121,16 @@ export function EventForm({ initialData }: { initialData?: Event }) {
         finalPosterPath = uploadData.key;
       }
 
+      const formatForDb = (val?: string) => {
+        if (!val) return "";
+        return toInputDate(val).replace("T", " ") + ":00";
+      };
+
       const payload = {
         ...formData,
         poster_path: finalPosterPath,
-        start_date_time: formData.start_date_time?.replace("T", " ") + ":00",
-        end_date_time: formData.end_date_time?.replace("T", " ") + ":00",
+        start_date_time: formatForDb(formData.start_date_time),
+        end_date_time: formatForDb(formData.end_date_time),
         is_special_event: formData.is_special_event ? 1 : 0,
       };
 
