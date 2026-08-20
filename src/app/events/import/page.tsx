@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ArrowLeftIcon, UploadSimpleIcon, SpinnerIcon, CheckCircleIcon, WarningIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { API_URL } from "@/lib/config";
+import { useActorHeaders } from "@/lib/actor";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
 import { motion, AnimatePresence } from "motion/react";
@@ -15,6 +16,7 @@ import { toast } from "sonner";
 
 export default function ImportEventsPage() {
   const router = useRouter();
+  const actorHeaders = useActorHeaders();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [results, setResults] = useState<{ success: number; failed: number } | null>(null);
@@ -119,7 +121,7 @@ export default function ImportEventsPage() {
         try {
           const res = await fetch(`${API_URL}/events`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", ...actorHeaders },
             body: JSON.stringify(event),
           });
           if (res.ok) {

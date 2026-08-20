@@ -24,12 +24,14 @@ import Link from "next/link";
 import { API_URL, CDN_URL } from "@/lib/config";
 import type { Event } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import { useActorHeaders } from "@/lib/actor";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 
 export default function EventPage() {
   const params = useParams();
   const router = useRouter();
+  const actorHeaders = useActorHeaders();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -59,6 +61,7 @@ export default function EventPage() {
     try {
       const res = await fetch(`${API_URL}/events/${params.id}`, {
         method: "DELETE",
+        headers: actorHeaders,
       });
       if (res.ok) {
         toast.success("Event deleted");

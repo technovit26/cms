@@ -17,6 +17,7 @@ import {
 import { SpinnerIcon, UploadSimpleIcon, XIcon } from "@phosphor-icons/react";
 import { API_URL, CDN_URL } from "@/lib/config";
 import { compressImage } from "@/lib/utils";
+import { useActorHeaders } from "@/lib/actor";
 import type { Event } from "@/lib/types";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
@@ -31,6 +32,7 @@ const PARTICIPATION_OPTIONS = ["Solo", "Duo", "Team"];
 
 export function EventForm({ initialData }: { initialData?: Event }) {
   const router = useRouter();
+  const actorHeaders = useActorHeaders();
   const [loading, setLoading] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -142,7 +144,7 @@ export function EventForm({ initialData }: { initialData?: Event }) {
 
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...actorHeaders },
         body: JSON.stringify(payload),
       });
 

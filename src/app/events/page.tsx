@@ -10,11 +10,13 @@ import Link from "next/link";
 import { API_URL, CDN_URL } from "@/lib/config";
 import { Event } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import { useActorHeaders } from "@/lib/actor";
 import { motion, AnimatePresence } from "motion/react";
 import Papa from "papaparse";
 import { toast } from "sonner";
 
 export default function EventsPage() {
+  const actorHeaders = useActorHeaders();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -78,7 +80,7 @@ export default function EventsPage() {
     try {
       await Promise.all(
         Array.from(selectedIds).map(id =>
-          fetch(`${API_URL}/events/${id}`, { method: "DELETE" })
+          fetch(`${API_URL}/events/${id}`, { method: "DELETE", headers: actorHeaders })
         )
       );
       toast.success(`${selectedIds.size} event${selectedIds.size === 1 ? "" : "s"} deleted`);
