@@ -10,6 +10,7 @@ import {
   CalendarBlankIcon,
   FolderOpenIcon,
   UploadSimpleIcon,
+  ClockCounterClockwiseIcon,
   SignOutIcon,
   SidebarSimpleIcon,
   XIcon,
@@ -21,6 +22,7 @@ const navigation = [
   { name: "Events", href: "/events", icon: CalendarBlankIcon },
   { name: "Media Browser", href: "/media", icon: FolderOpenIcon },
   { name: "Upload Media", href: "/upload", icon: UploadSimpleIcon },
+  { name: "Activity Log", href: "/activity", icon: ClockCounterClockwiseIcon },
 ];
 
 interface SidebarProps {
