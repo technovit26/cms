@@ -22,6 +22,9 @@ const navigation = [
   { name: "Events", href: "/events", icon: CalendarBlankIcon },
   { name: "Media Browser", href: "/media", icon: FolderOpenIcon },
   { name: "Upload Media", href: "/upload", icon: UploadSimpleIcon },
+];
+
+const secondaryNavigation = [
   { name: "Activity Log", href: "/activity", icon: ClockCounterClockwiseIcon },
 ];
 
@@ -144,7 +147,40 @@ export function Sidebar({
           })}
         </nav>
 
-        <div className="p-3 border-t border-zinc-200 bg-white">
+        <div className="p-3 border-t border-zinc-200 bg-white space-y-1">
+          {secondaryNavigation.map((item) => {
+            const isActive =
+              pathname === item.href ||
+              (item.href !== "/" && pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                onClick={closeMobile}
+                title={isCollapsed ? item.name : undefined}
+                className={cn(
+                  "flex items-center rounded-none py-3 text-sm font-medium transition-all border-l-2 cursor-pointer whitespace-nowrap",
+                  "justify-start gap-3 px-3",
+                  isCollapsed ? "md:justify-center md:px-0" : "",
+                  isActive
+                    ? "bg-zinc-100 text-foreground border-foreground"
+                    : "text-muted-foreground hover:bg-zinc-50 hover:text-foreground border-transparent",
+                )}
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                <span
+                  className={cn(
+                    "transition-all duration-300",
+                    isCollapsed
+                      ? "w-auto opacity-100 block md:w-0 md:opacity-0 md:overflow-hidden md:hidden"
+                      : "w-auto opacity-100 block",
+                  )}
+                >
+                  {item.name}
+                </span>
+              </Link>
+            );
+          })}
           <SignOutButton redirectUrl="/sign-in">
             <button
               title="Sign Out"
