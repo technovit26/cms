@@ -26,3 +26,19 @@ export interface MediaFile {
   size: number;
   uploaded: string;
 }
+
+export type ActivityAction = "create" | "update" | "delete" | "restore";
+
+export interface ActivityLog {
+  id: number;
+  entity_type: string;
+  entity_id: number;
+  entity_name: string | null;
+  action: ActivityAction;
+  changes: string | null;
+  actor_id: string | null;
+  actor_name: string | null;
+  actor_email: string | null;
+  created_at: string;
+  undone: 0 | 1;
+}
