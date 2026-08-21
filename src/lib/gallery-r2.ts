@@ -3,7 +3,13 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export const GALLERY_BUCKET = process.env.GALLERY_R2_BUCKET || "techno-gallery";
-export const GALLERY_PREFIX = "gallery/";
+
+export type GalleryFolder = "special" | "general";
+export const GALLERY_FOLDERS: GalleryFolder[] = ["special", "general"];
+
+export function isGalleryFolder(value: unknown): value is GalleryFolder {
+  return value === "special" || value === "general";
+}
 
 function requireEnv(name: string): string {
   const value = process.env[name];

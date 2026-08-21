@@ -3,26 +3,31 @@ import { ListObjectsV2Command, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import {
   galleryR2,
   GALLERY_BUCKET,
-  GALLERY_PREFIX,
   getGallerySignedUrl,
+  isGalleryFolder,
 } from "@/lib/gallery-r2";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const folder = req.nextUrl.searchParams.get("folder");
+  const prefix = isGalleryFolder(folder) ? `${folder}/` : undefined;
+
   const list = await galleryR2.send(
     new ListObjectsV2Command({
       Bucket: GALLERY_BUCKET,
-      Prefix: GALLERY_PREFIX,
+      Prefix: prefix,
       MaxKeys: 200,
     }),
   );
 
   const files = await Promise.all(
-    (list.Contents || []).map(async (obj) => ({
-      key: obj.Key!,
-      size: obj.Size ?? 0,
-      uploaded: obj.LastModified?.toISOString() ?? "",
-      url: await getGallerySignedUrl(obj.Key!),
-    })),
+    (list.Contents || [])
+      .filter((obj) => obj.Key && !obj.Key.endsWith("/"))
+      .map(async (obj) => ({
+        key: obj.Key!,
+        size: obj.Size ?? 0,
+        uploaded: obj.LastModified?.toISOString() ?? "",
+        url: await getGallerySignedUrl(obj.Key!),
+      })),
   );
 
   files.sort((a, b) => (a.uploaded < b.uploaded ? 1 : -1));

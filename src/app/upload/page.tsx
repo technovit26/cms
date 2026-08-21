@@ -16,6 +16,8 @@ import {
   SpinnerIcon,
   CheckCircleIcon,
   DownloadSimpleIcon,
+  StarIcon,
+  FolderSimpleIcon,
 } from "@phosphor-icons/react";
 import { API_URL, CDN_URL } from "@/lib/config";
 import { compressImage } from "@/lib/utils";
@@ -25,6 +27,7 @@ import { ConfirmDialog } from "@/components/cms/confirm-dialog";
 import { toast } from "sonner";
 
 type MediaType = "photos" | "videos" | "gallery";
+type GalleryFolder = "special" | "general";
 
 interface UploadedFile {
   name: string;
@@ -44,6 +47,7 @@ export default function UploadMediaPage() {
   const [previewMedia, setPreviewMedia] = useState<UploadedFile | null>(null);
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [galleryFolder, setGalleryFolder] = useState<GalleryFolder>("general");
 
   const addFiles = useCallback(
     (fileList: FileList | File[]) => {
@@ -121,6 +125,7 @@ export default function UploadMediaPage() {
         formData.append("file", fileToUpload);
 
         if (activeTab === "gallery") {
+          formData.append("folder", galleryFolder);
           const res = await fetch("/api/gallery/upload", {
             method: "POST",
             body: formData,
@@ -184,7 +189,7 @@ export default function UploadMediaPage() {
     } else {
       toast.warning(`${successCount} uploaded, ${failedCount} failed`);
     }
-  }, [selectedFiles, activeTab]);
+  }, [selectedFiles, activeTab, galleryFolder]);
 
   const filteredUploadedFiles = useMemo(
     () => uploadedFiles.filter((f) => f.type === activeTab),
@@ -260,6 +265,42 @@ export default function UploadMediaPage() {
                   Gallery
                 </TabsTrigger>
               </TabsList>
+
+              {activeTab === "gallery" && (
+                <div className="mb-4 flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground font-medium">
+                    Upload as:
+                  </span>
+                  <div className="inline-flex rounded-none border border-zinc-200 p-0.5 bg-zinc-100">
+                    <button
+                      type="button"
+                      onClick={() => setGalleryFolder("general")}
+                      disabled={isProcessing}
+                      className={`flex items-center gap-1.5 px-3 h-7 text-xs font-medium rounded-none cursor-pointer transition-colors ${
+                        galleryFolder === "general"
+                          ? "bg-white shadow-sm text-zinc-900"
+                          : "text-muted-foreground hover:text-zinc-700"
+                      }`}
+                    >
+                      <FolderSimpleIcon className="h-3.5 w-3.5" />
+                      General
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGalleryFolder("special")}
+                      disabled={isProcessing}
+                      className={`flex items-center gap-1.5 px-3 h-7 text-xs font-medium rounded-none cursor-pointer transition-colors ${
+                        galleryFolder === "special"
+                          ? "bg-white shadow-sm text-zinc-900"
+                          : "text-muted-foreground hover:text-zinc-700"
+                      }`}
+                    >
+                      <StarIcon className="h-3.5 w-3.5" />
+                      Special
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="mt-2">
                 <label
