@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1115.0",
+    "@aws-sdk/s3-request-presigner": "^3.1115.0",
     "@clerk/nextjs": "^6.37.2",
     "@clerk/ui": "^1.0.0",
     "@phosphor-icons/react": "^2.1.10",
@@ -24,6 +26,7 @@
     "radix-ui": "^1.4.3",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.4.0",
     "xlsx": "^0.18.5"

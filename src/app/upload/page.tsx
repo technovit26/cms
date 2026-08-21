@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ImageSquareIcon,
+  ImagesSquareIcon,
   VideoCameraIcon,
   UploadSimpleIcon,
   XIcon,
@@ -23,12 +24,13 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/cms/confirm-dialog";
 import { toast } from "sonner";
 
-type MediaType = "photos" | "videos";
+type MediaType = "photos" | "videos" | "gallery";
 
 interface UploadedFile {
   name: string;
   size: number;
   path: string;
+  url?: string;
   type: MediaType;
 }
 
@@ -41,21 +43,41 @@ export default function UploadMediaPage() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [previewMedia, setPreviewMedia] = useState<UploadedFile | null>(null);
   const [showClearDialog, setShowClearDialog] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const addFiles = useCallback(
+    (fileList: FileList | File[]) => {
+      const newFiles = Array.from(fileList);
+      const filteredFiles = newFiles.filter((file) => {
+        if (activeTab === "photos" || activeTab === "gallery")
+          return file.type.startsWith("image/");
+        if (activeTab === "videos") return file.type.startsWith("video/");
+        return false;
+      });
+      setSelectedFiles((prev) => [...prev, ...filteredFiles]);
+    },
+    [activeTab],
+  );
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files.length > 0) {
-        const newFiles = Array.from(e.target.files);
-        const filteredFiles = newFiles.filter((file) => {
-          if (activeTab === "photos") return file.type.startsWith("image/");
-          if (activeTab === "videos") return file.type.startsWith("video/");
-          return false;
-        });
-        setSelectedFiles((prev) => [...prev, ...filteredFiles]);
+        addFiles(e.target.files);
         e.target.value = "";
       }
     },
-    [activeTab],
+    [addFiles],
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLLabelElement>) => {
+      e.preventDefault();
+      setIsDragging(false);
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        addFiles(e.dataTransfer.files);
+      }
+    },
+    [addFiles],
   );
 
   const removeFile = useCallback((index: number) => {
@@ -82,7 +104,7 @@ export default function UploadMediaPage() {
       let fileToUpload = originalFile;
 
       try {
-        if (activeTab === "photos") {
+        if (activeTab === "photos" || activeTab === "gallery") {
           setStatusMessage(`Compressing ${originalFile.name}...`);
           try {
             const compressed = await compressImage(originalFile);
@@ -97,27 +119,52 @@ export default function UploadMediaPage() {
         setStatusMessage(`Uploading ${fileToUpload.name}...`);
         const formData = new FormData();
         formData.append("file", fileToUpload);
-        formData.append("folder", activeTab);
 
-        const res = await fetch(`${API_URL}/media`, {
-          method: "POST",
-          body: formData,
-        });
-
-        if (res.ok) {
+        if (activeTab === "gallery") {
+          const res = await fetch("/api/gallery/upload", {
+            method: "POST",
+            body: formData,
+          });
           const data = await res.json();
-          successCount++;
-          setUploadedFiles((prev) => [
-            {
-              name: originalFile.name,
-              size: fileToUpload.size,
-              path: data.key || data.path,
-              type: activeTab,
-            },
-            ...prev,
-          ]);
+          const result = data.results?.[0];
+
+          if (res.ok && result?.success) {
+            successCount++;
+            setUploadedFiles((prev) => [
+              {
+                name: originalFile.name,
+                size: fileToUpload.size,
+                path: result.key,
+                url: result.url,
+                type: activeTab,
+              },
+              ...prev,
+            ]);
+          } else {
+            failedCount++;
+          }
         } else {
-          failedCount++;
+          formData.append("folder", activeTab);
+          const res = await fetch(`${API_URL}/media`, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            successCount++;
+            setUploadedFiles((prev) => [
+              {
+                name: originalFile.name,
+                size: fileToUpload.size,
+                path: data.key || data.path,
+                type: activeTab,
+              },
+              ...prev,
+            ]);
+          } else {
+            failedCount++;
+          }
         }
       } catch (error) {
         console.error("Failed to upload file:", error);
@@ -147,7 +194,7 @@ export default function UploadMediaPage() {
   return (
     <CMSLayout
       title="Upload Media"
-      description="Upload photos and videos to the R2 storage"
+      description="Upload photos, videos, and gallery images to R2 storage"
       actions={
         <Link href="/media" className="cursor-pointer">
           <Button
@@ -176,7 +223,9 @@ export default function UploadMediaPage() {
               <span>
                 {activeTab === "photos"
                   ? "Auto-WebP Conversion Active"
-                  : "Original Quality Upload"}
+                  : activeTab === "gallery"
+                    ? "Uploads to Gallery R2 Bucket"
+                    : "Original Quality Upload"}
               </span>
             </div>
           </CardHeader>
@@ -188,7 +237,7 @@ export default function UploadMediaPage() {
                 setSelectedFiles([]);
               }}
             >
-              <TabsList className="grid w-full grid-cols-2 rounded-none bg-zinc-100 p-1 mb-4 h-9">
+              <TabsList className="grid w-full grid-cols-3 rounded-none bg-zinc-100 p-1 mb-4 h-9">
                 <TabsTrigger
                   value="photos"
                   className="gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs sm:text-sm cursor-pointer h-7"
@@ -203,25 +252,42 @@ export default function UploadMediaPage() {
                   <VideoCameraIcon className="h-4 w-4" />
                   Videos
                 </TabsTrigger>
+                <TabsTrigger
+                  value="gallery"
+                  className="gap-2 rounded-none data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs sm:text-sm cursor-pointer h-7"
+                >
+                  <ImagesSquareIcon className="h-4 w-4" />
+                  Gallery
+                </TabsTrigger>
               </TabsList>
 
               <div className="mt-2">
                 <label
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    if (!isProcessing) setIsDragging(true);
+                  }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={handleDrop}
                   className={`flex flex-col items-center justify-center border border-dashed p-6 sm:p-8 transition-colors cursor-pointer bg-zinc-50/50 rounded-none ${
                     isProcessing
                       ? "opacity-50 pointer-events-none"
-                      : "hover:bg-zinc-50 hover:border-zinc-400 border-zinc-300"
+                      : isDragging
+                        ? "bg-zinc-100 border-zinc-400"
+                        : "hover:bg-zinc-50 hover:border-zinc-400 border-zinc-300"
                   }`}
                 >
                   <UploadSimpleIcon className="mb-2 h-6 w-6 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground font-medium">
-                    Click to select {activeTab}
+                    Click or drag &amp; drop to bulk import {activeTab}
                   </span>
                   <input
                     type="file"
                     className="hidden"
                     multiple
-                    accept={activeTab === "photos" ? "image/*" : "video/*"}
+                    accept={
+                      activeTab === "videos" ? "video/*" : "image/*"
+                    }
                     onChange={handleFileChange}
                     disabled={isProcessing}
                   />
@@ -253,10 +319,12 @@ export default function UploadMediaPage() {
                       >
                         <div className="flex items-center gap-3 overflow-hidden">
                           <div className="h-8 w-8 bg-white border border-zinc-200 flex items-center justify-center shrink-0">
-                            {activeTab === "photos" ? (
-                              <ImageSquareIcon className="text-zinc-400 h-4 w-4" />
-                            ) : (
+                            {activeTab === "videos" ? (
                               <VideoCameraIcon className="text-zinc-400 h-4 w-4" />
+                            ) : activeTab === "gallery" ? (
+                              <ImagesSquareIcon className="text-zinc-400 h-4 w-4" />
+                            ) : (
+                              <ImageSquareIcon className="text-zinc-400 h-4 w-4" />
                             )}
                           </div>
                           <div className="min-w-0">
@@ -349,9 +417,9 @@ export default function UploadMediaPage() {
                     className="group relative border border-zinc-200 bg-zinc-50"
                   >
                     <div className="aspect-square bg-zinc-100 flex items-center justify-center relative overflow-hidden">
-                      {file.type === "photos" ? (
+                      {file.type === "photos" || file.type === "gallery" ? (
                         <img
-                          src={`${CDN_URL}/${file.path}`}
+                          src={file.url || `${CDN_URL}/${file.path}`}
                           alt={file.name}
                           className="h-full w-full object-cover"
                         />
@@ -411,7 +479,7 @@ export default function UploadMediaPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <a
-                      href={`${CDN_URL}/${previewMedia.path}`}
+                      href={previewMedia.url || `${CDN_URL}/${previewMedia.path}`}
                       download={previewMedia.name}
                       target="_blank"
                       rel="noreferrer"
@@ -444,7 +512,7 @@ export default function UploadMediaPage() {
                     />
                   ) : (
                     <img
-                      src={`${CDN_URL}/${previewMedia.path}`}
+                      src={previewMedia.url || `${CDN_URL}/${previewMedia.path}`}
                       alt="Preview"
                       className="max-h-full max-w-full object-contain shadow-2xl"
                     />
